@@ -1,0 +1,20 @@
+#tiles {
+  display: grid;
+  grid-template-columns: auto auto auto;
+  width: 902px;
+  gap: 2px;
+  height: 902px;
+  margin-left: 20px;
+  background-color: #c9c9c9;
+}
+
+#tiles.loading {
+  background-image: url("https://upload.wikimedia.org/wikipedia/commons/5/54/Ajux_loader.gif");
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.quadrant {
+  max-width: 300px;
+  height: auto;
+}
