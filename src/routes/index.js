@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const router = express.Router();
 const fs = require("fs");
 const fetch = require("node-fetch");
@@ -26,9 +27,9 @@ router.post("/get-tiles", (req, res) => {
 	 *  @returns {Object} files "returns the URLs of our images"
 	 */
 	const slices = () => {
-		var lineXArray = [682, 1364];
-		var lineYArray = [682, 1364];
-		var source = "./src/public/temp/source/main.jpg";
+		let lineXArray = [682, 1364];
+		let lineYArray = [682, 1364];
+		let source = "./src/public/temp/source/main.jpg";
 
 		imageToSlices(
 			source,
@@ -42,11 +43,12 @@ router.post("/get-tiles", (req, res) => {
 			},
 			function () {
 				fs.readdir("./src/public/temp/slices/", function (err, files) {
+					const images = files.filter((el) => el !== ".gitignore");
 					if (err) {
 						onError(err);
 						return;
 					}
-					res.send(files);
+					res.send(images);
 				});
 			}
 		);
