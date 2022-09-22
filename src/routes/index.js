@@ -1,9 +1,11 @@
 const express = require("express");
 const path = require("path");
 const router = express.Router();
-const fs = require("fs");
+var fs = require('fs'),
+    request = require('request');
 const fetch = require("node-fetch");
 const imageToSlices = require("image-to-slices");
+const axios = require('axios');
 
 router.get("/", (req, res) => {
 	res.render("layouts/main");
@@ -19,8 +21,8 @@ router.post("/get-tiles", (req, res) => {
 	const todayDate = new Date().toISOString().slice(0, 10);
 	const date = req.body.date ? req.body.date : todayDate;
 
-	const url = `https://api.nasa.gov/planetary/earth/imagery?lon=${lon}&lat=${lat}&date=${date}&dim=0.50&api_key=gNVY3OiQQekxdGav8oAVNkRgzbuLPEb5ylmspu34`;
-
+	const uri = `https://api.nasa.gov/planetary/earth/assets?lon=${lon}&lat=${lat}&date=${date}&dim=0.50&api_key=gNVY3OiQQekxdGav8oAVNkRgzbuLPEb5ylmspu34`;
+console.log(uri)
 	/**
 	 * This function makes the crop in 9 portions of the image obtained from the Nasa API
 	 * This function was created with the image-to-slices module
@@ -29,7 +31,7 @@ router.post("/get-tiles", (req, res) => {
 	const slices = () => {
 		let lineXArray = [682, 1364];
 		let lineYArray = [682, 1364];
-		let source = "./src/public/temp/source/main.jpg";
+		let source = "./src/public/temp/source/main.png";
 
 		imageToSlices(
 			source,
@@ -57,16 +59,41 @@ router.post("/get-tiles", (req, res) => {
 	/**
 	 * This function makes the request to the NASA API to download the image and then we chain the image cropping function
 	 */
-	const download = async () => {
-		const response = await fetch(url);
-		const buffer = await response.buffer();
-		fs.promises
-			.writeFile(`./src/public/temp/source/main.jpg`, buffer)
-			.then(() => {
-				// Do whatever you want to do.
-				slices();
-			});
+	const download =  () => {
+		axios
+		.get(uri)
+		.then(res => {
+			var data = res.data;
+			var imgURL = data.url;
+			console.log(imgURL)
+			return imgURL
+		  
+		}).then(response => {
+			console.log('another fn', response)
+			//execute the download fn
+		return	downloadImg(response, './src/public/temp/source/main.png', function(){
+			console.log('ready to cut');
+			slices()
+	     	})
+		})
+		.catch(error => {
+		  console.error(error);
+		});
+	  
+	
 	};
+
+
+	
+
+var downloadImg = function(uri, filename, callback){
+  request.head(uri, function(err, res, body){
+    console.log('content-type:', res.headers['content-type']);
+    console.log('content-length:', res.headers['content-length']);
+
+    request(uri).pipe(fs.createWriteStream(filename)).on('close', callback);
+  });
+};
 
 	/**
 	 * This instruction executes the main function of this file
